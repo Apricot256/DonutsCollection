@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#define SCREEN_H 28
-#define SCREEN_W 28
+#define SCREEN_H 24
+#define SCREEN_W 24
 
 const char luminance[12] = {'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'};
 
@@ -26,7 +26,7 @@ void render_frame(float A, float B){
 
     // z-bufferとスクリーン
     vector<vector<char>> output(SCREEN_H+1, vector<char>(2*SCREEN_W+1, ' '));
-    vector<vector<int>> z_buf(SCREEN_H+1, vector<int>(2*SCREEN_W+1, 0));
+    vector<vector<float>> z_buf(SCREEN_H+1, vector<float>(2*SCREEN_W+1, 0));
 
     // 断面の中での回転
     for (float theta = 0; theta < 2*M_PI; theta+=theta_spacing) {
@@ -41,18 +41,19 @@ void render_frame(float A, float B){
             float cosphi = cos(phi), sinphi = sin(phi);
 
             // 太さを周期関数倍して絞り(?)をつくる
-            R1 = max(0.2f, abs(sin(4*phi)));
+            R1 = max(0.4f, abs(sin(4*phi)));
 
-            // 断面の作成
+            // 断面の作成 太さを周期関数倍して絞り(?)をつくる
             float circlex = R2 + R1*costheta;
             float circley = R1*sintheta;
 
-            // 作成した断面をドーナツに沿って回転
+            // 作成した断面をドーナツに沿って回転し、空間にプロット
             float x = circlex*(cosB*cosphi + sinA*sinB*sinphi) - circley*cosA*sinB; 
             float y = circlex*(sinB*cosphi - sinA*cosB*sinphi) + circley*cosA*cosB;
             float z = K2 + cosA*circlex*sinphi + circley*sinA;
             float ooz = 1/z;  // "one over z"
 
+            // 二次元に写像
             int xp = (int) (2*(SCREEN_W/2 + K1*ooz*x));
             int yp = (int) (SCREEN_H/2 - K1*ooz*y);
 
@@ -91,8 +92,8 @@ int main(int argc, char const *argv[]){
 
     while (true){
         render_frame(A, B);
-        A += 0.08;
-        B += 0.04;
+        A += 0.004;
+        B += 0.002;
     }
     
     return 0;
